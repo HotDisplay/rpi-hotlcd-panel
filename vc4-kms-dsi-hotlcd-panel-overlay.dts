@@ -1,0 +1,179 @@
+/*
+ * vc4-kms-dsi-hotlcd-panel-overlay.dts
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2835";
+
+	i2c_frag: fragment@0 {
+		target = <&i2c_csi_dsi>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			// display_mcu: display_mcu@45 {
+			// 	compatible = "waveshare,touchscreen-panel-regulator";
+			// 	reg = <0x45>;
+			// 	gpio-controller;
+			// 	#gpio-cells = <2>;
+			// 	enable-gpio = <&display_mcu 2 0>;
+			// };
+
+			touch: goodix@5d {
+                compatible = "goodix,gt9271";
+				reg = <0x5d>;
+
+                pinctrl-names = "default";
+                pinctrl-0 = <&tprst_pin &tpint_pin>;
+
+				interrupt-parent = <&gpio>;
+				interrupts = <18 2>; // high-to-low edge triggered
+				reset-gpios = <&gpio 15 0>;
+                irq-gpios = <&gpio 18 0>;
+			};
+		};
+	};
+
+	dsi_frag: fragment@1 {
+		target = <&dsi1>;
+		__overlay__  {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			port {
+				dsi_out: endpoint {
+					remote-endpoint = <&panel_in>;
+				};
+			};
+
+			dsi_panel: dsi_panel@0 {
+				compatible = "hotlcd,h080a11";
+				reg = <0>;
+                
+                pinctrl-names = "default";
+                pinctrl-0 = <&rst_pin>;
+
+				reset-gpios = <&gpio 23 1>;
+
+				// backlight = <&backlight_gpio>;
+				backlight = <&backlight_pwm>;
+
+				port {
+					panel_in: endpoint {
+						remote-endpoint = <&dsi_out>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c0if>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@3 {
+		target = <&i2c0mux>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+    fragment@4 {
+        target = <&gpio>;
+		__overlay__ {
+            rst_pin: rst_pin{
+                brcm,pins = <23>;
+                brcm,function = <1>; /* output */
+				brcm,pull = <0>; // off
+            };
+            tprst_pin: tprst_pin{
+                brcm,pins = <15>;
+                brcm,function = <1>; //out
+				brcm,pull = <0>; // off
+            };
+            tpint_pin: tpint_pin{
+                brcm,pins = <18>; 
+                brcm,function = <0>; //in
+				brcm,pull = <0>; // off
+            };
+            backlight_pin: backlight_pin{
+                function = "pwm0";
+				pins = "gpio14";
+				bias-disable;
+            };
+		};
+    };
+
+    fragment@5 {
+        target-path = "/";
+        __dormant__ {
+            backlight_gpio: backlight_gpio {
+                compatible = "gpio-backlight";
+
+                pinctrl-names = "default";
+                pinctrl-0 = <&backlight_pin>;
+
+                gpios = <&gpio 14 0>;
+            };
+        };
+    };
+
+    fragment@6 {
+        target-path = "/";
+        __overlay__ {
+            backlight_pwm: backlight_pwm {
+                compatible = "pwm-backlight";
+                pwms = <&rp1_pwm0 2 50000 0>;
+                brightness-levels = <
+                    0  1  2  3  4  5  6  7
+                    8  9  10  11  12  13  14  15
+                    16  17  18  19  20  21  22  23
+                    24  25  26  27  28  29  30  31
+                    32  33  34  35  36  37  38  39
+                    40  41  42  43  44  45  46  47
+                    48  49  50  51  52  53  54  55
+                    56  57  58  59  60  61  62  63
+                    64  65  66  67  68  69  70  71
+                    72  73  74  75  76  77  78  79
+                    80  81  82  83  84  85  86  87
+                    88  89  90  91  92  93  94  95
+                    96  97  98  99  100>;
+                default-brightness-level = <80>;
+            };
+        };
+    };
+
+    fragment@7 {
+        target = <&rp1_pwm0>;
+        __overlay__ {
+            pinctrl-names = "default";
+            pinctrl-0 = <&backlight_pin>;
+            status = "okay";
+        };
+    };
+
+	__overrides__ {
+		h042a01 = <&dsi_panel>, "compatible=hotlcd,h042a01";
+		h043a8 = <&dsi_panel>, "compatible=hotlcd,h043a8";
+		h070a23 = <&dsi_panel>, "compatible=hotlcd,h070a23";
+		h080a11 = <&dsi_panel>, "compatible=hotlcd,h080a11";
+        			// <&touch>, "touchscreen-swapped-x-y",
+				    // <&touch>, "touchscreen-inverted-y";
+
+		disable_touch = <&touch>, "status=disabled";
+		invx = <&touch>,"touchscreen-inverted-x?";
+		invy = <&touch>,"touchscreen-inverted-y?";
+		swapxy = <&touch>,"touchscreen-swapped-x-y?";
+		dsi0 = <&dsi_frag>, "target:0=",<&dsi0>,
+			   <&i2c_frag>, "target:0=",<&i2c_csi_dsi0>;
+        brightness = <&backlight_pwm>,"default-brightness-level:0";
+	};
+};
