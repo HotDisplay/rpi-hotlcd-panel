@@ -55,12 +55,12 @@
 
 ### 1. 拉取驱动源码
 
-在树莓派4/5上执行（git 仓库地址待补充，先以 `<仓库地址>` 占位）：
+在树莓派4/5上执行：
 
 ```bash
 cd ~
-git clone <仓库地址> hotlcd-panel
-cd hotlcd-panel
+git clone https://github.com/Nil-lxl/rpi-hotlcd-panel.git
+cd rpi-hotlcd-panel
 ```
 
 > 若暂无 git，也可将驱动目录手动拷贝到树莓派4/5，例如 `~/hotlcd-panel/`。
