@@ -1,5 +1,7 @@
 /*
- * vc4-kms-dsi-hotlcd-panel-overlay.dts
+ * vc4-kms-dsi-hotlcd-panel-pi5-overlay.dts
+ * 树莓派5版本：背光使用 PWM 调光（PWM0, GPIO14）
+ * 编译前请重命名为 vc4-kms-dsi-hotlcd-panel-overlay.dts
  */
 
 /dts-v1/;
@@ -14,14 +16,6 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
-
-			// display_mcu: display_mcu@45 {
-			// 	compatible = "waveshare,touchscreen-panel-regulator";
-			// 	reg = <0x45>;
-			// 	gpio-controller;
-			// 	#gpio-cells = <2>;
-			// 	enable-gpio = <&display_mcu 2 0>;
-			// };
 
 			touch: goodix@5d {
                 compatible = "goodix,gt9271";
@@ -54,7 +48,7 @@
 			dsi_panel: dsi_panel@0 {
 				compatible = "hotlcd,h080a11";
 				reg = <0>;
-                
+
                 pinctrl-names = "default";
                 pinctrl-0 = <&rst_pin>;
 
@@ -100,7 +94,7 @@
 				brcm,pull = <0>; // off
             };
             tpint_pin: tpint_pin{
-                brcm,pins = <18>; 
+                brcm,pins = <18>;
                 brcm,function = <0>; //in
 				brcm,pull = <0>; // off
             };
@@ -131,7 +125,7 @@
         __overlay__ {
             backlight_pwm: backlight_pwm {
                 compatible = "pwm-backlight";
-                pwms = <&rp1_pwm0 2 50000 0>;
+                pwms = <&pwm0 2 50000 0>;
                 brightness-levels = <
                     0  1  2  3  4  5  6  7
                     8  9  10  11  12  13  14  15
@@ -152,10 +146,10 @@
     };
 
     fragment@7 {
-        target = <&rp1_pwm0>;
+        target = <&pwm0>;
         __overlay__ {
             pinctrl-names = "default";
-            pinctrl-0 = <&backlight_pin>;
+			pinctrl-0 = <&backlight_pin>;
             status = "okay";
         };
     };
