@@ -861,7 +861,7 @@ static const struct drm_display_mode ht_panel_h043a8_mode = {
 };
 
 static const struct drm_display_mode ht_panel_h070a23_mode = {
-    .clock = 53 * 1000,
+    .clock = 38 * 1000,
     .hdisplay = 1024,
     .hsync_start = 1024 + 120,
     .hsync_end = 1024 + 120 + 80,
