@@ -59,7 +59,7 @@
 
 ```bash
 cd ~
-git clone https://github.com/Nil-lxl/rpi-hotlcd-panel.git
+git clone https://github.com/HotDisplay/rpi-hotlcd-panel.git
 cd rpi-hotlcd-panel
 ```
 
