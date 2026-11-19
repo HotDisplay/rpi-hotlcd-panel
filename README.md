@@ -1,8 +1,8 @@
-# H070A23 CM4 显示模组使用说明
+# HTM-H070A23-RpiCM4-A02 显示模组驱动
 
-版本：`v1.0.0`。源码分支：[h070a23-rpicm4](https://github.com/HotDisplay/rpi-hotlcd-panel/tree/h070a23-rpicm4)。
+版本：`v1.0.0`。源码分支：[htm-h070a23-rpicm4-a02](https://github.com/HotDisplay/rpi-hotlcd-panel/tree/htm-h070a23-rpicm4-a02)。
 
-适用于配套 H070A23 CM4 显示模组和 Raspberry Pi OS，使用 DSI1、4 Lane、51MHz 配置。以下命令在 CM4 终端中执行。
+适用于 HTM-H070A23-RpiCM4-A02 显示模组底板及配套 H070A23 显示屏，系统为 Raspberry Pi OS。使用 DSI1、4 Lane、51MHz 配置。以下命令在 CM4 终端中执行。
 
 ## 1. 安装与更新
 
