@@ -1,7 +1,4 @@
-/*
- * HTM-H070A23-RpiCM4-A02_V0: DSI1, I2C5 and PWM0 backlight.
- * R3 is fitted as a 6.8k-ohm pull-up; do not use 0 ohms with GPIO26 reset.
- */
+/* H070A23 CM4 display module: DSI1 with PWM backlight. */
 
 /dts-v1/;
 /plugin/;
