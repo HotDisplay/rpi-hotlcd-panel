@@ -503,7 +503,7 @@ static const struct panel_init_cmd ht_panel_h070a23_init[] = {
     INIT_DCS_SEND(0x35, 0x3c),
 
     INIT_DCS_SEND(0xee, 0x08),
-    INIT_DCS_SEND(0x10, 0x02),	// 00=4Lane，01=3Lane，02=2LANE。
+    INIT_DCS_SEND(0x10, 0x00),	// 00=4Lane，01=3Lane，02=2LANE。
     INIT_DCS_SEND(0x12, 0xda),
     INIT_DCS_SEND(0x13, 0x1c),
     INIT_DCS_SEND(0x18, 0x30),
@@ -803,6 +803,12 @@ static int ht_panel_prepare(struct drm_panel *panel) {
     struct ht_panel *ctx = panel_to_ht(panel);
     int ret;
 
+    if (ctx->power) {
+        ret = regulator_enable(ctx->power);
+        if (ret)
+            return ret;
+    }
+
     /* And reset it */
     if (ctx->reset) {
         gpiod_set_value_cansleep(ctx->reset, 1);
@@ -812,10 +818,13 @@ static int ht_panel_prepare(struct drm_panel *panel) {
     }
 
     ret = ht_panel_init_dcs_cmd(ctx);
-    if (ret < 0)
+    if (ret < 0) {
         dev_err(panel->dev, "failed to init panel: %d\n", ret);
+        if (ctx->power)
+            regulator_disable(ctx->power);
+    }
 
-    return 0;
+    return ret;
 }
 
 static int ht_panel_unprepare(struct drm_panel *panel) {
@@ -828,6 +837,9 @@ static int ht_panel_unprepare(struct drm_panel *panel) {
         gpiod_set_value_cansleep(ctx->reset, 1);
         msleep(20);
     }
+
+    if (ctx->power)
+        return regulator_disable(ctx->power);
 
     return 0;
 }
@@ -861,7 +873,7 @@ static const struct drm_display_mode ht_panel_h043a8_mode = {
 };
 
 static const struct drm_display_mode ht_panel_h070a23_mode = {
-    .clock = 38 * 1000,
+    .clock = 51 * 1000,
     .hdisplay = 1024,
     .hsync_start = 1024 + 120,
     .hsync_end = 1024 + 120 + 80,
@@ -944,6 +956,13 @@ static int ht_panel_dsi_probe(struct mipi_dsi_device *dsi) {
     drm_panel_init(&ctx->panel, &dsi->dev, &ht_panel_funcs,
         DRM_MODE_CONNECTOR_DSI);
 
+    ctx->power = devm_regulator_get_optional(&dsi->dev, "power");
+    if (IS_ERR(ctx->power)) {
+        if (PTR_ERR(ctx->power) != -ENODEV)
+            return dev_err_probe(&dsi->dev, PTR_ERR(ctx->power), "Couldn't get power supply\n");
+        ctx->power = NULL;
+    }
+
     ctx->reset = devm_gpiod_get(&dsi->dev, "reset", GPIOD_OUT_HIGH);
     if (IS_ERR(ctx->reset))
         return dev_err_probe(&dsi->dev, PTR_ERR(ctx->reset), "Couldn't get reset GPIO\n");
@@ -1017,7 +1036,7 @@ static const struct ht_panel_desc ht_panel_h070a23_desc = {
     .init = ht_panel_h070a23_init,
     .mode = &ht_panel_h070a23_mode,
     .mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_LPM | MIPI_DSI_CLOCK_NON_CONTINUOUS,
-    .lanes = 2,
+    .lanes = 4,
     .format = MIPI_DSI_FMT_RGB888,
 };
 

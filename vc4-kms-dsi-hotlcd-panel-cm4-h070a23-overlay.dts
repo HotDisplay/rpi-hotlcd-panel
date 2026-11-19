@@ -1,0 +1,168 @@
+/*
+ * HTM-H070A23-RpiCM4-A02_V0: DSI1, I2C5 and PWM0 backlight.
+ * R3 is fitted as a 6.8k-ohm pull-up; do not use 0 ohms with GPIO26 reset.
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2711";
+
+	fragment@0 {
+		target = <&i2c5>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clock-frequency = <100000>;
+			status = "okay";
+
+			touch: goodix@5d {
+				compatible = "goodix,gt9271";
+				reg = <0x5d>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&tprst_pin &tpint_pin>;
+				interrupt-parent = <&gpio>;
+				interrupts = <6 2>; /* falling edge */
+				reset-gpios = <&gpio 13 0>;
+				irq-gpios = <&gpio 6 0>;
+				AVDD28-supply = <&lcd_vci>;
+				VDDIO-supply = <&lcd_vci>;
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&dsi1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			port {
+				dsi_out: endpoint {
+					remote-endpoint = <&panel_in>;
+				};
+			};
+
+			dsi_panel: dsi_panel@0 {
+				compatible = "hotlcd,h070a23";
+				reg = <0>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&rst_pin>;
+				reset-gpios = <&gpio 26 1>; /* active low */
+				power-supply = <&lcd_vci>;
+				backlight = <&backlight_pwm>;
+
+				port {
+					panel_in: endpoint {
+						remote-endpoint = <&dsi_out>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&gpio>;
+		__overlay__ {
+			rst_pin: rst_pin {
+				brcm,pins = <26>;
+				brcm,function = <1>; /* output */
+				brcm,pull = <0>;
+			};
+			tprst_pin: tprst_pin {
+				brcm,pins = <13>;
+				brcm,function = <1>; /* output */
+				brcm,pull = <0>;
+			};
+			tpint_pin: tpint_pin {
+				brcm,pins = <6>;
+				brcm,function = <0>; /* input */
+				brcm,pull = <0>;
+			};
+			backlight_pin: backlight_pin {
+				brcm,pins = <16>;
+				brcm,function = <1>; /* output */
+				brcm,pull = <0>;
+			};
+			backlight_pwm_pin: backlight_pwm_pin {
+				brcm,pins = <12>;
+				brcm,function = <4>; /* ALT0: PWM0 */
+				brcm,pull = <0>;
+			};
+			lcd_power_pin: lcd_power_pin {
+				brcm,pins = <19>;
+				brcm,function = <1>; /* output */
+				brcm,pull = <0>;
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&i2c5_pins>;
+		__overlay__ {
+			/* I2C5 defaults to GPIO12/13, which this board uses elsewhere. */
+			brcm,pins = <10 11>;
+		};
+	};
+
+	fragment@4 {
+		target = <&pwm>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&backlight_pwm_pin>;
+			status = "okay";
+		};
+	};
+
+	fragment@5 {
+		target-path = "/";
+		__overlay__ {
+			lcd_vci: regulator-lcd-vci {
+				compatible = "regulator-fixed";
+				regulator-name = "lcd-vci";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&lcd_power_pin>;
+				gpio = <&gpio 19 0>;
+				enable-active-high;
+				startup-delay-us = <50000>;
+				/* LCD and touch share VCI; retain power during display blanking. */
+				regulator-always-on;
+			};
+
+			backlight_pwm: backlight_pwm {
+				compatible = "pwm-backlight";
+				pinctrl-names = "default";
+				pinctrl-0 = <&backlight_pin>;
+				pwms = <&pwm 0 50000 0>; /* PWM0, 20kHz, normal polarity */
+				enable-gpios = <&gpio 16 0>;
+				brightness-levels = <
+					0  1  2  3  4  5  6  7
+					8  9  10 11 12 13 14 15
+					16 17 18 19 20 21 22 23
+					24 25 26 27 28 29 30 31
+					32 33 34 35 36 37 38 39
+					40 41 42 43 44 45 46 47
+					48 49 50 51 52 53 54 55
+					56 57 58 59 60 61 62 63
+					64 65 66 67 68 69 70 71
+					72 73 74 75 76 77 78 79
+					80 81 82 83 84 85 86 87
+					88 89 90 91 92 93 94 95
+					96 97 98 99 100>;
+				default-brightness-level = <80>;
+			};
+		};
+	};
+
+	__overrides__ {
+		disable_touch = <&touch>, "status=disabled";
+		invx = <&touch>, "touchscreen-inverted-x?";
+		invy = <&touch>, "touchscreen-inverted-y?";
+		swapxy = <&touch>, "touchscreen-swapped-x-y?";
+	};
+};
