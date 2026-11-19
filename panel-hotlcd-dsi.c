@@ -503,7 +503,7 @@ static const struct panel_init_cmd ht_panel_h070a23_init[] = {
     INIT_DCS_SEND(0x35, 0x3c),
 
     INIT_DCS_SEND(0xee, 0x08),
-    INIT_DCS_SEND(0x10, 0x02),	// 00=4Lane，01=3Lane，02=2LANE。
+    INIT_DCS_SEND(0x10, 0x00),	// 00=4Lane，01=3Lane，02=2LANE。
     INIT_DCS_SEND(0x12, 0xda),
     INIT_DCS_SEND(0x13, 0x1c),
     INIT_DCS_SEND(0x18, 0x30),
@@ -861,7 +861,7 @@ static const struct drm_display_mode ht_panel_h043a8_mode = {
 };
 
 static const struct drm_display_mode ht_panel_h070a23_mode = {
-    .clock = 53 * 1000,
+    .clock = 51 * 1000,
     .hdisplay = 1024,
     .hsync_start = 1024 + 120,
     .hsync_end = 1024 + 120 + 80,
@@ -1017,7 +1017,7 @@ static const struct ht_panel_desc ht_panel_h070a23_desc = {
     .init = ht_panel_h070a23_init,
     .mode = &ht_panel_h070a23_mode,
     .mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_LPM | MIPI_DSI_CLOCK_NON_CONTINUOUS,
-    .lanes = 2,
+    .lanes = 4,
     .format = MIPI_DSI_FMT_RGB888,
 };
 

@@ -1,7 +1,6 @@
 /*
  * vc4-kms-dsi-hotlcd-panel-pi5-overlay.dts
  * 树莓派5版本：背光使用 PWM 调光（PWM0, GPIO14）
- * 编译前请重命名为 vc4-kms-dsi-hotlcd-panel-overlay.dts
  */
 
 /dts-v1/;

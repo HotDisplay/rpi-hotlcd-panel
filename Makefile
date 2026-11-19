@@ -1,12 +1,10 @@
 TARGET = panel-hotlcd-dsi
-#TARGET2 = waveshare-panel-regulator
 
 KDIR = /lib/modules/$(shell uname -r)/build
 
 PWD = $(shell pwd)
 
 obj-m := $(TARGET).o
-#obj-m += $(TARGET2).o
 
 
 default:
